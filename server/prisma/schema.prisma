@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Route {
+  id       Int    @id @default(autoincrement())
+  place    String
+  duration Int
+
+  tours Tour[]
+}
+
+model Tour {
+  id     Int      @id @default(autoincrement())
+  name   String
+  amount Int
+  hotel  String
+  place  String
+  date   DateTime
+
+  // Extended fields for search/reporting
+  country           String?
+  description       String?
+  hotelStars        Int?
+  transport         String? // e.g., plane, bus, train
+  meals             String? // e.g., AI, HB, BB
+  insuranceIncluded Boolean @default(false)
+  guideIncluded     Boolean @default(false)
+  maxGroupSize      Int?
+
+  routeId Int
+  route   Route @relation(fields: [routeId], references: [id])
+
+  orders Order[]
+  groups Group[]
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  password  String
+  role      UserRole
+  balance   Int      @default(50000)
+  createdAt DateTime @default(now())
+
+  orders    Order[]
+}
+
+model Order {
+  id     Int @id @default(autoincrement())
+  amount Int
+
+  // Link to customer (user who pays)
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  // Link to tour and specific group (departure)
+  tourId  Int
+  tour    Tour   @relation(fields: [tourId], references: [id])
+  groupId Int?
+  group   Group? @relation(fields: [groupId], references: [id])
+
+  // Cancellation handling and bookkeeping
+  status       OrderStatus @default(CONFIRMED)
+  insuranceFee Int         @default(0)
+  cancelledAt  DateTime?
+  createdAt    DateTime    @default(now())
+}
+
+// Client (Клиент) with full name fields for ФИО queries
+model Client {
+  id         Int     @id @default(autoincrement())
+  firstName  String
+  lastName   String
+  middleName String?
+}
+
+// Group of a tour (конкретный выезд/заезд) to manage capacity and profitability
+model Group {
+  id        Int      @id @default(autoincrement())
+  tourId    Int
+  tour      Tour     @relation(fields: [tourId], references: [id])
+  startDate DateTime
+  capacity  Int
+
+  // Costs for profitability calculations
+  fixedCost             Int @default(0)
+  variableCostPerPerson Int @default(0)
+
+  orders Order[]
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum UserRole {
+  user
+  admin
+  moderator
+}

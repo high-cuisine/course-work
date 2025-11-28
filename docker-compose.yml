@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # Backend сервер (NestJS)
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: tour-booking-server
+    ports:
+      - "4004:4004"
+    environment:
+      - NODE_ENV=development
+      - PORT=4004
+      - DATABASE_URL=file:./prisma/dev.db
+      - JWT_SECRET=${JWT_SECRET:-devsecret}
+      - JWT_EXPIRES=${JWT_EXPIRES:-7d}
+    volumes:
+      - ./server/prisma:/app/prisma
+      - ./server/src:/app/src
+      - ./server/scripts:/app/scripts
+      - ./server/generate_tours.sql:/app/generate_tours.sql
+    working_dir: /app
+    command: npm run start:dev
+    networks:
+      - tour-booking-network
+    restart: unless-stopped
+
+  # Frontend клиент (React/Vite)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: tour-booking-client
+    ports:
+      - "5174:5174"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://server:4004
+    volumes:
+      - ./client/src:/app/src
+      - ./client/public:/app/public
+      - ./client/index.html:/app/index.html
+      - ./client/vite.config.js:/app/vite.config.js
+      - ./client/package.json:/app/package.json
+    working_dir: /app
+    command: npm run dev -- --host 0.0.0.0
+    depends_on:
+      - server
+    networks:
+      - tour-booking-network
+    restart: unless-stopped
+
+networks:
+  tour-booking-network:
+    driver: bridge
+
+volumes:
+  database-data:
+
