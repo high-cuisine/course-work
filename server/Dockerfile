@@ -1,4 +1,11 @@
-FROM node:20-alpine
+FROM node:20-slim
+
+# Устанавливаем необходимые системные зависимости для нативных модулей
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
@@ -8,7 +15,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Устанавливаем зависимости
-RUN npm ci
+RUN npm install
 
 # Копируем остальные файлы
 COPY . .
