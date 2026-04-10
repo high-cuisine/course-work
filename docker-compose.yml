@@ -10,11 +10,11 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=4004
-      - DATABASE_URL=file:./prisma/dev.db
+      - DATABASE_URL=file:/app/data/dev.db
       - JWT_SECRET=${JWT_SECRET:-devsecret}
       - JWT_EXPIRES=${JWT_EXPIRES:-7d}
     volumes:
-      - ./server/prisma:/app/prisma
+      - server-db:/app/data
       - ./server/src:/app/src
       - ./server/scripts:/app/scripts
       - ./server/generate_tours.sql:/app/generate_tours.sql
@@ -54,5 +54,5 @@ networks:
     driver: bridge
 
 volumes:
-  database-data:
+  server-db:
 

@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y \
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
+# SQLite вне bind-mount (именованный том /app/data) — избегаем ошибки "Unable to open the database file"
+ENV DATABASE_URL="file:/app/data/dev.db"
+
 # Копируем файлы зависимостей
 COPY package*.json ./
 COPY prisma ./prisma/
@@ -20,15 +23,14 @@ RUN npm install
 # Копируем остальные файлы
 COPY . .
 
-# Генерируем Prisma клиент
-RUN npx prisma generate
-
-# Создаем базу данных если её нет
-RUN npx prisma db push || true
+RUN chmod +x /app/docker-entrypoint.sh \
+  && mkdir -p /app/data \
+  && npx prisma generate \
+  && (npx prisma db push || true)
 
 # Открываем порт
 EXPOSE 4004
 
-# Запускаем приложение
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["npm", "run", "start:dev"]
 

@@ -100,7 +100,9 @@ docker-compose exec server npm run migrate generate_tours.sql
 
 ### Доступ к базе данных
 
-База данных SQLite находится в `server/prisma/dev.db` и монтируется как volume, поэтому данные сохраняются между перезапусками.
+В Docker SQLite хранится в именованном томе `server-db` по пути внутри контейнера `/app/data/dev.db` (переменная `DATABASE_URL=file:/app/data/dev.db`). Данные сохраняются между перезапусками; при `docker-compose down -v` том удаляется вместе с БД.
+
+Локально без Docker по-прежнему можно использовать `server/prisma/dev.db` через свой `.env` в каталоге `server`.
 
 ### Prisma Studio
 
