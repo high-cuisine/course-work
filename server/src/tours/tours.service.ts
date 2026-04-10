@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 
 /** SQLite + Prisma raw: boolean как 0/1, иначе при чтении строки — «invalid characters». */
-function sqliteBool(v: boolean | string | undefined | null): number {
+function sqliteBool(v: boolean | string | number | undefined | null): number {
   if (v === true || v === 'true' || v === 1 || v === '1') return 1;
   return 0;
 }
