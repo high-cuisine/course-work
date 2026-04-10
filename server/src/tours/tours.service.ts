@@ -1,6 +1,20 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+/** SQLite + Prisma raw: boolean как 0/1, иначе при чтении строки — «invalid characters». */
+function sqliteBool(v: boolean | string | undefined | null): number {
+  if (v === true || v === 'true' || v === 1 || v === '1') return 1;
+  return 0;
+}
+
+function toSqliteDateTime(value: string): string {
+  const t = new Date(value).getTime();
+  if (Number.isNaN(t)) {
+    throw new BadRequestException('Некорректная дата');
+  }
+  return new Date(value).toISOString();
+}
+
 @Injectable()
 export class ToursService {
   constructor(private readonly prisma: PrismaService) {}
@@ -28,23 +42,45 @@ export class ToursService {
     );
     if (!route[0]) throw new NotFoundException('Route not found');
 
-    const result = await this.prisma.$executeRawUnsafe(
+    const routeId = Number(data.routeId);
+    const amount = Number(data.amount);
+    if (!Number.isFinite(routeId) || !Number.isFinite(amount)) {
+      throw new BadRequestException('Некорректные routeId или amount');
+    }
+    const hotelStars =
+      data.hotelStars === undefined || data.hotelStars === null
+        ? null
+        : Number(data.hotelStars);
+    const maxGroupSize =
+      data.maxGroupSize === undefined || data.maxGroupSize === null
+        ? null
+        : Number(data.maxGroupSize);
+    if (hotelStars !== null && !Number.isFinite(hotelStars)) {
+      throw new BadRequestException('Некорректное значение hotelStars');
+    }
+    if (maxGroupSize !== null && !Number.isFinite(maxGroupSize)) {
+      throw new BadRequestException('Некорректное значение maxGroupSize');
+    }
+
+    const dateIso = toSqliteDateTime(String(data.date));
+
+    await this.prisma.$executeRawUnsafe(
       `INSERT INTO Tour (name, amount, hotel, place, date, routeId, country, description, hotelStars, transport, meals, insuranceIncluded, guideIncluded, maxGroupSize) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      data.name,
-      data.amount,
-      data.hotel,
-      data.place,
-      data.date,
-      data.routeId,
-      data.country ?? null,
-      data.description ?? null,
-      data.hotelStars ?? null,
-      data.transport ?? null,
-      data.meals ?? null,
-      data.insuranceIncluded ?? false,
-      data.guideIncluded ?? false,
-      data.maxGroupSize ?? null,
+      String(data.name ?? '').trim(),
+      amount,
+      String(data.hotel ?? '').trim(),
+      String(data.place ?? '').trim(),
+      dateIso,
+      routeId,
+      data.country != null ? String(data.country).trim() || null : null,
+      data.description != null ? String(data.description).trim() || null : null,
+      hotelStars,
+      data.transport != null ? String(data.transport).trim() || null : null,
+      data.meals != null ? String(data.meals).trim() || null : null,
+      sqliteBool(data.insuranceIncluded),
+      sqliteBool(data.guideIncluded),
+      maxGroupSize,
     );
     const created = await this.prisma.$queryRawUnsafe<any[]>(
       `SELECT t.*, r.place as routePlace, r.duration as routeDuration 
@@ -159,10 +195,28 @@ export class ToursService {
     };
 
     for (const [key, value] of Object.entries(fields)) {
-      if (value !== undefined) {
+      if (value === undefined) continue;
+      if (key === 'insuranceIncluded' || key === 'guideIncluded') {
         updates.push(`${key} = ?`);
-        values.push(value);
+        values.push(sqliteBool(value as boolean));
+        continue;
       }
+      if (key === 'date' && value !== null) {
+        updates.push(`${key} = ?`);
+        values.push(toSqliteDateTime(String(value)));
+        continue;
+      }
+      if (key === 'routeId' || key === 'amount' || key === 'hotelStars' || key === 'maxGroupSize') {
+        const n = value === null ? null : Number(value);
+        if (n !== null && !Number.isFinite(n)) {
+          throw new BadRequestException(`Некорректное значение ${key}`);
+        }
+        updates.push(`${key} = ?`);
+        values.push(n);
+        continue;
+      }
+      updates.push(`${key} = ?`);
+      values.push(value);
     }
 
     if (updates.length === 0) return this.findOne(id);
