@@ -34,7 +34,7 @@ services:
       - "5174:5174"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://server:4004
+      - VITE_API_URL=http://5.129.223.161:4004
     volumes:
       - ./client/src:/app/src
       - ./client/public:/app/public

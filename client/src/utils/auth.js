@@ -16,6 +16,14 @@ export const setAuth = (token, user) => {
   localStorage.setItem('user', JSON.stringify(user))
 }
 
+const apiUrl = (path) => {
+  const base = import.meta.env.VITE_API_URL?.trim?.() || ''
+  if (base) {
+    return `${base.replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`
+  }
+  return `/api${path.startsWith('/') ? path : `/${path}`}`
+}
+
 export const api = (url, options = {}) => {
   const token = getToken()
   const headers = {
@@ -27,7 +35,7 @@ export const api = (url, options = {}) => {
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  return fetch(`/api${url}`, {
+  return fetch(apiUrl(url), {
     ...options,
     headers,
   }).then(async (res) => {
