@@ -75,7 +75,14 @@ export class UsersController {
       role: user.role,
       balance: user.balance,
       createdAt: user.createdAt,
+      isSuperAdmin: this.usersService.isSuperAdminName(user.name),
     };
+  }
+
+  @Get(':id/orders')
+  @UseGuards(AdminGuard)
+  async findUserOrders(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findOrders(id);
   }
 
   @Put(':id')
