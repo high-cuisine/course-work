@@ -27,9 +27,9 @@ export class UsersController {
   @Post('register')
   async register(
     @Body()
-    body: { name: string; password: string; role?: 'user' | 'admin' | 'moderator' },
+    body: { name: string; password: string },
   ) {
-    const user = await this.usersService.create(body.name, body.password, body.role ?? 'user');
+    const user = await this.usersService.create(body.name, body.password, 'user');
     const token = await this.authService.signToken(user.id, user.name, user.role);
     return { token };
   }

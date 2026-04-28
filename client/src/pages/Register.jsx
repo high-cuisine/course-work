@@ -5,7 +5,6 @@ import { api, setAuth } from '../utils/auth'
 export default function Register({ onLogin }) {
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState('user')
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
@@ -15,7 +14,7 @@ export default function Register({ onLogin }) {
     try {
       const data = await api('/users/register', {
         method: 'POST',
-        body: JSON.stringify({ name, password, role }),
+        body: JSON.stringify({ name, password }),
       })
       // Сохраняем токен сразу после получения
       if (data.token) {
@@ -58,19 +57,6 @@ export default function Register({ onLogin }) {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-          </div>
-          <div className="form-group">
-            <label>Роль</label>
-            <select
-              className="input"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              required
-            >
-              <option value="user">Пользователь</option>
-              <option value="moderator">Модератор</option>
-              <option value="admin">Администратор</option>
-            </select>
           </div>
           <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
             Зарегистрироваться
