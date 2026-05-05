@@ -87,18 +87,25 @@ export default function OrdersManagement() {
               </td>
               <td>{new Date(order.createdAt).toLocaleDateString('ru-RU')}</td>
               <td>
-                <button
-                  className="btn"
-                  style={{
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    padding: '5px 10px',
-                    fontSize: '12px'
-                  }}
-                  onClick={() => handleDelete(order.id)}
-                >
-                  Удалить
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  {order.groupStartDate && (
+                    <span style={{ fontSize: '12px' }}>
+                      Группа: {new Date(order.groupStartDate).toLocaleDateString('ru-RU')}
+                    </span>
+                  )}
+                  <button
+                    className="btn"
+                    style={{
+                      backgroundColor: '#dc3545',
+                      color: 'white',
+                      padding: '5px 10px',
+                      fontSize: '12px'
+                    }}
+                    onClick={() => handleDelete(order.id)}
+                  >
+                    Удалить
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
