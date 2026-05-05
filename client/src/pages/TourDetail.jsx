@@ -6,15 +6,12 @@ export default function TourDetail({ user, onUserUpdate }) {
   const { id } = useParams()
   const navigate = useNavigate()
   const [tour, setTour] = useState(null)
-  const [groups, setGroups] = useState([])
-  const [selectedGroup, setSelectedGroup] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
   useEffect(() => {
     loadTour()
-    loadGroups()
   }, [id])
 
   const loadTour = async () => {
@@ -25,15 +22,6 @@ export default function TourDetail({ user, onUserUpdate }) {
       setError(err.message)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const loadGroups = async () => {
-    try {
-      const data = await api(`/groups?tourId=${id}`)
-      setGroups(data)
-    } catch (err) {
-      console.error(err)
     }
   }
 
@@ -50,11 +38,9 @@ export default function TourDetail({ user, onUserUpdate }) {
         method: 'POST',
         body: JSON.stringify({
           tourId: parseInt(id),
-          groupId: selectedGroup ? parseInt(selectedGroup) : undefined,
         }),
       })
       setSuccess('Тур успешно забронирован!')
-      loadGroups()
       if (onUserUpdate) onUserUpdate()
     } catch (err) {
       setError(err.message)
@@ -84,25 +70,6 @@ export default function TourDetail({ user, onUserUpdate }) {
           {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
           {success && <div style={{ color: 'green', marginBottom: '10px' }}>{success}</div>}
           
-          {groups.length > 0 && (
-            <div className="form-group">
-              <label>Выберите группу (дата заезда)</label>
-              <select
-                className="input"
-                value={selectedGroup}
-                onChange={(e) => setSelectedGroup(e.target.value)}
-              >
-                <option value="">Без привязки к группе</option>
-                {groups.map((group) => (
-                  <option key={group.id} value={group.id}>
-                    {new Date(group.startDate).toLocaleDateString('ru-RU')} 
-                    (Свободно: {group.capacity - (group.taken || 0)}/{group.capacity})
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
           <button onClick={handleBook} className="btn btn-primary">
             Забронировать за {tour.amount} ₽
           </button>

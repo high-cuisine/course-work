@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import ToursManagement from '../components/admin/ToursManagement'
 import RoutesManagement from '../components/admin/RoutesManagement'
-import GroupsManagement from '../components/admin/GroupsManagement'
 import ClientsManagement from '../components/admin/ClientsManagement'
 import OrdersManagement from '../components/admin/OrdersManagement'
 import UsersManagement from '../components/admin/UsersManagement'
@@ -12,7 +11,6 @@ export default function AdminPanel({ user }) {
   const tabs = [
     { id: 'tours', name: 'Туры', component: ToursManagement },
     { id: 'routes', name: 'Маршруты', component: RoutesManagement },
-    { id: 'groups', name: 'Группы', component: GroupsManagement },
     { id: 'clients', name: 'Клиенты', component: ClientsManagement },
     { id: 'orders', name: 'Заказы', component: OrdersManagement },
   ]

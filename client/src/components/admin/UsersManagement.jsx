@@ -228,7 +228,6 @@ export default function UsersManagement({ user }) {
                             <th>Сумма</th>
                             <th>Статус</th>
                             <th>Дата заказа</th>
-                            <th>Дата выезда</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -241,7 +240,6 @@ export default function UsersManagement({ user }) {
                               <td>{o.amount} ₽</td>
                               <td>{statusLabel(o.status)}</td>
                               <td>{o.createdAt ? new Date(o.createdAt).toLocaleDateString('ru-RU') : '—'}</td>
-                              <td>{o.groupStartDate ? new Date(o.groupStartDate).toLocaleDateString('ru-RU') : '—'}</td>
                             </tr>
                           ))}
                         </tbody>
